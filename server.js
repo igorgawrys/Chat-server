@@ -1,9 +1,42 @@
-var app = require('express')();
-var http = require('http').createServer(app);
+const express = require('express');
+const app = express();
+const http = require('http');
+const bodyParser = require('body-parser');
+
+// Get default server port
+const port = process.env.port || '3000';
+// And set it in express
+app.set('port', port);
+
+// Set response to JSON
+app.use(bodyParser.json());
+
+app.get('/', (req, res) => {
+    res.setHeader('Content-Type', 'application/json');
+    res.send(JSON.stringify({
+        message: 'Api works!'
+    }));
+});
 
 
-app.get('/', function(req, res){});
+app.get('/messages', (req, res) => {
+    res.setHeader('Content-Type', 'application/json');
+    res.setHeader('Access-Control-Allow-Origin', 'http://localhost:3001');
+    res.send(JSON.stringify([
+        {
+            content: "Cześć Artur!"
+        }, {
+            content: "Hej!"
+        }, {
+            content: "Wiesz że to tylko demo? :P"
+        }, {
+            content: "Wiem :D"
+        }
+    ]));
+});
 
-http.listen(3000, function(){
-    console.log("Server started at port 3000");
+// SetUp server
+const server = http.createServer(app);
+server.listen(port, () => {
+    console.log("Api is running at port:" + port);
 });
