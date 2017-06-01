@@ -31,26 +31,36 @@ app.get('/', (req, res) => {
     }));
 });
 
-
-app.get('/messages', (req, res) => {
-    res.send(JSON.stringify([
+let conversations = {
+    1: [
         {
-            content: "Cześć Artur!",
-            type: "text"
-        }, {
+            from: 500,
+            type: 'text',
             content: "Hej!",
-            type: "text"
+            readBy: [ 501 ]
         }, {
-            content: "Wiesz że to tylko demo? :P",
-            type: "text"
+            from: 501,
+            type: 'text',
+            content: "Witaj!"
         }, {
-            content: "Wiem :D",
-            type: "text"
-        }, {
-            content: "https://avatars0.githubusercontent.com/u/4172079?v=3&s=88",
-            type: "image"
+            from: 501,
+            type: 'image',
+            content: 'https://avatars0.githubusercontent.com/u/4172079?v=3&s=88'
         }
-    ]));
+    ]
+}
+
+app.get('/messages/:conversation_id', (req, res) => {
+    let conversation_id = req.params.conversation_id;
+    let conversation = [];
+    for(let i in conversations){
+        if(i === conversation_id){
+            conversation = conversations[i];
+            break;
+        }
+    }
+
+    res.send(conversation);
 });
 
 // SetUp server
