@@ -3,6 +3,9 @@ const app = express();
 const http = require('http');
 const bodyParser = require('body-parser');
 
+const conversationFactory = require('./class/ConversationFactory');
+
+
 // Get default server port
 const port = process.env.port || '3000';
 // And set it in express
@@ -36,31 +39,6 @@ app.get('/', (req, res) => {
     }));
 });
 
-let conversations = {
-    1: [
-        {
-            from: 500,
-            content: "Hej!",
-            readBy: [ 501 ]
-        }, {
-            from: 501,
-            content: "Witaj!"
-        }, {
-            from: 501,
-            content: 'https://avatars0.githubusercontent.com/u/4172079?v=3&s=88'
-        }
-    ]
-}
-
-function findConversation(conversation_id){
-    for(let i in conversations){
-        if(i === conversation_id){
-            return conversations[i];
-        }
-    }
-
-    return [];
-}
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({
@@ -68,20 +46,11 @@ app.use(bodyParser.urlencoded({
 }));
 
 app.get('/messages/:conversation_id', (req, res) => {
-    res.send(findConversation(req.params.conversation_id));
+    res.send(conversationFactory.getConversation(req.params.conversation_id));
 });
 
 app.post('/messages/:conversation_id', (req, res) => {
-
-    let conversation = findConversation(req.params.conversation_id);
-    let newMessage = {
-        from: req.body.from,
-        type: req.body.type,
-        content: req.body.content
-    };
-
-    conversation.push(newMessage);
-    res.send(newMessage);
+    res.send(conversationFactory.addMessage(req.params.conversation_id, conversationFactory.parseMessage(req.body)));
 });
 
 // SetUp server
