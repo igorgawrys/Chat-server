@@ -3,9 +3,6 @@ const app = express();
 const http = require('http');
 const bodyParser = require('body-parser');
 
-const conversationFactory = require('./class/ConversationFactory');
-const userFactory = require('./class/userFactory');
-
 // Get default server port
 const port = process.env.port || '3000';
 // And set it in express
@@ -32,30 +29,13 @@ app.use((req, res, next) => {
     next();
 });
 
-app.get('/', (req, res) => {
-    res.setHeader('Content-Type', 'application/json');
-    res.send(JSON.stringify({
-        message: 'Api works!'
-    }));
-});
-
-
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({
     extended: true
 }));
 
-app.get('/messages/:conversationID', (req, res) => {
-    res.send(conversationFactory.get(req.params.conversationID));
-});
-
-app.post('/messages/:conversationID', (req, res) => {
-    res.send(conversationFactory.addMessage(req.params.conversationID, conversationFactory.parseMessage(req.body)));
-});
-
-app.get('/users/:userID', (req, res) => {
-    res.send(userFactory.get(req.params.userID));
-});
+// Define routes
+const routes = require('./routes')(app);
 
 // SetUp server
 const server = http.createServer(app);
