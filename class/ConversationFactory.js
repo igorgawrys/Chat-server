@@ -18,9 +18,9 @@ class ConversationFactory {
         };
     }
 
-    getConversation(conversation_id) {
+    get(convesationID) {
         for (let i in this.conversations) {
-            if (i === conversation_id) {
+            if (i === convesationID) {
                 return this.conversations[i];
             }
         }
@@ -43,8 +43,8 @@ class ConversationFactory {
         return newMessage;
     }
 
-    addMessage(conversation_id, message) {
-        this.getConversation(conversation_id).push(message);
+    addMessage(conversationID, message) {
+        this.get(conversationID).push(message);
         return message;
     }
 }

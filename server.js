@@ -4,7 +4,7 @@ const http = require('http');
 const bodyParser = require('body-parser');
 
 const conversationFactory = require('./class/ConversationFactory');
-
+const userFactory = require('./class/userFactory');
 
 // Get default server port
 const port = process.env.port || '3000';
@@ -45,12 +45,16 @@ app.use(bodyParser.urlencoded({
     extended: true
 }));
 
-app.get('/messages/:conversation_id', (req, res) => {
-    res.send(conversationFactory.getConversation(req.params.conversation_id));
+app.get('/messages/:conversationID', (req, res) => {
+    res.send(conversationFactory.get(req.params.conversationID));
 });
 
-app.post('/messages/:conversation_id', (req, res) => {
-    res.send(conversationFactory.addMessage(req.params.conversation_id, conversationFactory.parseMessage(req.body)));
+app.post('/messages/:conversationID', (req, res) => {
+    res.send(conversationFactory.addMessage(req.params.conversationID, conversationFactory.parseMessage(req.body)));
+});
+
+app.get('/users/:userID', (req, res) => {
+    res.send(userFactory.get(req.params.userID));
 });
 
 // SetUp server
