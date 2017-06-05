@@ -11,6 +11,10 @@
   "dependencies": {
     "bcrypt": "^1.0.2",
     "body-parser": "^1.17.2",
-    "express": "^4.15.3"
+    "express": "^4.15.3",
+    "nodejs-websocket": "^1.7.1",
+    "socket.io": "^2.0.2",
+    "websocket": "^1.0.24",
+    "ws": "^3.0.0"
   }
 }

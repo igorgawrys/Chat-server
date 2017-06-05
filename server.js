@@ -1,12 +1,5 @@
-const express = require('express');
-const app = express();
-const http = require('http');
+const app = require('express')();
 const bodyParser = require('body-parser');
-
-// Get default server port
-const port = process.env.port || '3000';
-// And set it in express
-app.set('port', port);
 
 let allowedOrigins = [
     'http://localhost:3001',
@@ -34,11 +27,16 @@ app.use(bodyParser.urlencoded({
     extended: true
 }));
 
+
+
+const server = require('http').createServer(app);
+const WebSocketServer = require('ws');
+const ws = new WebSocketServer.Server({ server });
+
 // Define routes
 const routes = require('./routes')(app);
+const wsRoutes = require('./ws-routes')(ws);
 
-// SetUp server
-const server = http.createServer(app);
-server.listen(port, () => {
-    console.log("Api is running at port:" + port);
+server.listen(3000, () => {
+    console.log("Server is running on port: " + server.address().port);
 });
