@@ -1,33 +1,7 @@
 "use strict"
+let User = require('./User');
+let tokenFactory = require('./TokenFactory');
 let passwordFactory = require('./PasswordFactory');
-
-let userNextID = 1;
-
-class User {
-    constructor(userData){
-        this.login = userData.login;
-        this.id = userNextID++;
-    }
-
-    getID(){
-        return this.id;
-    }
-
-    getLogin(){
-        return this.login;
-    }
-
-    static Parse(userData){
-        if(userData.login === undefined){
-            return false;
-        }
-        let user = new User(userData);
-        passwordFactory.generatePassword(user.id, userData.password);
-
-        return user;
-    }
-
-}
 
 let exampleUsers = [
     {
@@ -42,13 +16,10 @@ let exampleUsers = [
     }
 ];
 
-let instance;
-
 class userFactory {
 
     constructor(){
         this.users = [];
-        instance = this;
 
         while(exampleUsers.length > 0){
             let user = this.create(exampleUsers.pop());           
@@ -56,9 +27,9 @@ class userFactory {
     }
 
     find(userLogin){
-        for(let i in instance.users){
-            if(userLogin == instance.users[i].getLogin()){
-               return instance.users[i].getID(); 
+        for(let i in this.users){
+            if(userLogin == this.users[i].getLogin()){
+               return this.users[i].getID(); 
             }
         }
 
@@ -78,16 +49,20 @@ class userFactory {
         let user = User.Parse(userData);
         if(user !== false){
             this.users.push(user);
-            
-            console.log("User " + user.login + " was created");
             return user;    
         }
 
         return false;
     }
 
+    // On success - send new token to user
     authenticate(userLogin, userPass){
-        return passwordFactory.validate(this.find(userLogin), userPass);
+        let userID = this.find(userLogin);
+        if(passwordFactory.validate(userID, userPass)){
+            return tokenFactory.generateToken(userID);
+        }
+
+        return false;
     }
 }
 module.exports = new userFactory();
