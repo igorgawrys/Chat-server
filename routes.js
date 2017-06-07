@@ -21,7 +21,21 @@ module.exports = (app) => {
 
     // User routes
     app.get('/users/:userID', (req, res) => {
-        res.send(userFactory.get(req.params.userID));
+        let userID = req.params.userID;
+        let user = undefined;
+        if(parseInt(userID)){
+            user = userFactory.get(userID);
+        } else {
+            user = userFactory.get(userFactory.find(userID));
+        }
+
+        if(user === null){
+            user = {
+                error: "User not exists"
+            }
+        };
+
+        res.send(user);
     });
 
     app.post('/users/authenticate', (req, res) => {
