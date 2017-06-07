@@ -21,6 +21,9 @@ let connectionsFactory = new ConnectionsFactory();
 module.exports = (socket) => {
     socket.on('connection', function connection(ws, req) {
         connectionsFactory.add(ws);
+
+        console.log(connectionsFactory.connections.length);
+
         ws.on('message', (data) => {
             connectionsFactory.find(1).send(data);
             connectionsFactory.find(2).send(data);
