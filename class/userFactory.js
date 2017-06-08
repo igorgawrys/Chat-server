@@ -5,14 +5,16 @@ let passwordFactory = require('./PasswordFactory');
 
 let exampleUsers = [
     {
-        login: "arturczuba",
-        password: "AlaMaKota"
+        login: "a",
+        password: "a",
+        friends: [1]
     }, {
         login: "rafalgogol",
         password: "AlaMaKota"
     }, {
         login: "paupau",
-        password: "AlaNieMaKota"
+        password: "AlaNieMaKota",
+        friends: [3]
     }
 ];
 

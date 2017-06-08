@@ -60,7 +60,6 @@ class TokenFactory {
 
         for(let i in user.tokens){
             if(user.tokens[i] === token){
-                console.log(token);
                 return true;
             }
         }

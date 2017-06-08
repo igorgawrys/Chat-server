@@ -5,6 +5,12 @@ class User {
     constructor(userData){
         this.login = userData.login;
         this.id = userNextID++;
+
+        if(userData.friends !== undefined){
+            this.friends = userData.friends;
+        } else {
+            this.friends = [];
+        }
     }
 
     getID(){
@@ -14,6 +20,10 @@ class User {
     getLogin(){
         return this.login;
     }
+
+    getFriends(){
+        return this.friends;
+    } 
 
     static Parse(userData){
         if(userData.login === undefined){
