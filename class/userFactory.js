@@ -67,5 +67,9 @@ class userFactory {
 
         return false;
     }
+
+    validate(userID, userToken){
+        return tokenFactory.validateToken(userID, userToken);
+    }
 }
 module.exports = new userFactory();

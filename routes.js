@@ -38,10 +38,26 @@ module.exports = (app) => {
         res.send(user);
     });
 
+    app.post('/users/validate', (req, res) => {
+        if(req.body === undefined || req.body.token === undefined || req.body.userID === undefined){
+            res.send({
+                error: "Token or userID is not provided"
+            });
+            return;
+        }
+
+        let token = req.body.token;
+        let userID = req.body.userID;
+
+        res.send({
+            validToken: userFactory.validate(userID, token)
+        });        
+    });
+
     app.post('/users/authenticate', (req, res) => {
         if(req.body === undefined || req.body.login === undefined || req.body.password === undefined){
             res.send({
-                message: "Login or password is not provided"
+                error: "Login or password is not provided"
             });
             return;
         }
