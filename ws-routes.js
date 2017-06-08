@@ -69,22 +69,38 @@ module.exports = (socket) => {
                         ws: ws
                     });
 
-                    console.log(data.userID + " connected, now WS contains " + connectionsFactory.getCount() + " active connections");
+                    // console.log(data.userID + " connected, now WS contains " + connectionsFactory.getCount() + " active connections");
 
-                    let user =  UserFactory.get(data.userID);
-                    let friends = user.getFriends();
-                    for(let i in friends){
-                        let friend = connectionsFactory.find(friends[i]);
-                        if(friend !== undefined){
-                            friend.ws.send(JSON.stringify({
-                                type: "user connected",
-                                userID: data.userID
-                            }));
-                            // console.log("Friend " + friends[i] + " is connected");
-                        } else {
-                            // console.log("Friend " + friends[i] + " is disconnected");
+                    {
+                        let user =  UserFactory.get(data.userID);
+                        let friends = user.getFriends();
+                        for(let i in friends){
+                            let friend = connectionsFactory.find(friends[i]);
+                            if(friend !== undefined){
+                                friend.ws.send(JSON.stringify({
+                                    type: "user connected",
+                                    userID: data.userID
+                                }));
+                            }
                         }
                     }
+
+                    let activeUsers = [];
+                        let user = connectionsFactory.find(data.userID);
+                        if(user !== undefined){
+                            let friends = UserFactory.get(data.userID).friends;
+                            for(let i in friends){
+                                let friend = connectionsFactory.find(friends[i]);
+                                if(friend !== undefined){
+                                    activeUsers.push(friend.userID);
+                                }
+                            }
+                        }
+
+                        ws.send(JSON.stringify({
+                            type: 'active users list',
+                            activeUsers: activeUsers
+                        }));
 
                     break;
 
@@ -96,18 +112,29 @@ module.exports = (socket) => {
                     for(let i in data.to){
                         let user = connectionsFactory.find(data.to[i]);
                         if(user !== undefined){
-                            user.ws.send({
+                            user.ws.send(JSON.stringify({
                                 type: 'update',
                                 conversationID: data.conversationID
-                            });
+                            }));
                         }
                     }
+                    break;
             }
         });
 
         ws.on('close', (data) => {
             let user = connectionsFactory.remove(ws);
-            console.log(user + " disconnected, now WS contains " + connectionsFactory.getCount() + " active connections");
+            let friends = UserFactory.get(user).friends;
+            for(let i in friends){
+                let friend = connectionsFactory.find(friends[i]);
+                if(friend !== undefined){
+                    friend.ws.send(JSON.stringify({
+                        type: 'user disconnected',
+                        userID: user
+                    }));
+                }
+            }
+            // console.log(user + " disconnected, now WS contains " + connectionsFactory.getCount() + " active connections");
         })
     });
 
