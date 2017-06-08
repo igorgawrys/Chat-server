@@ -49,18 +49,18 @@ module.exports = (app) => {
         let login = req.body.login;
         let password = req.body.password;
         
-        let userToken = userFactory.authenticate(login, password);
+        let userData = userFactory.authenticate(login, password);
 
-        if(userToken === false){
+        if(userData === false){
             res.send({
-                message: "User not authenticated"
+                error: "User not authenticated"
             });
 
             return;
         } else {
-            res.send({
-                token: userToken
-            });
+            res.send(
+                userData
+            );
         }
     });
 }

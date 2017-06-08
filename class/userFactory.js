@@ -59,7 +59,10 @@ class userFactory {
     authenticate(userLogin, userPass){
         let userID = this.find(userLogin);
         if(passwordFactory.validate(userID, userPass)){
-            return tokenFactory.generateToken(userID);
+            return {
+                userID: userID,
+                token: tokenFactory.generateToken(userID)
+            }
         }
 
         return false;
