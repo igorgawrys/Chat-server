@@ -6,6 +6,8 @@ class User {
         this.login = userData.login;
         this.id = userNextID++;
 
+        this.ws = undefined; // Hold WebSocket connection
+
         if(userData.friends !== undefined){
             this.friends = userData.friends;
         } else {
@@ -24,6 +26,14 @@ class User {
     getFriends(){
         return this.friends;
     } 
+
+    assignWebSocket(ws){
+        this.ws = ws;
+    }
+
+    getWebSocket(){
+        return this.ws;
+    }
 
     static Parse(userData){
         if(userData.login === undefined){

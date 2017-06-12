@@ -30,12 +30,12 @@ app.use(bodyParser.urlencoded({
 
 
 const server = require('http').createServer(app);
-const WebSocketServer = require('ws');
-const ws = new WebSocketServer.Server({ server });
+//const WebSocketServer = require('ws');
+//const ws = new WebSocketServer.Server({ server });
 
 // Define routes
 const routes = require('./routes')(app);
-const wsRoutes = require('./ws-routes')(ws);
+//const wsRoutes = require('./ws-routes')(ws);
 
 server.listen(3000, () => {
     console.log("Server is running on port: " + server.address().port);

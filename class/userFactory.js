@@ -47,6 +47,15 @@ class userFactory {
         return null;
     }
 
+    findByWS(ws){
+        for(let i in this.users){
+            if(ws == this.users[i].getWebSocket()){
+               return this.users[i]; 
+            }
+        }
+        return null;
+    }
+
     create(userData){
         let user = User.Parse(userData);
         if(user !== false){
