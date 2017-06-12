@@ -1,4 +1,7 @@
 "use strict"
+
+const db = require('../database');
+
 let User = require('./User');
 let tokenFactory = require('./TokenFactory');
 let passwordFactory = require('./PasswordFactory');
@@ -24,11 +27,25 @@ class userFactory {
         this.users = [];
 
         while(exampleUsers.length > 0){
-            let user = this.create(exampleUsers.pop());           
+            let user = this.create(exampleUsers.pop(), (message) => {
+                console.log(message);
+            }, (err) => {
+                console.error(err);
+            });           
         }
     }
 
-    find(userLogin){
+    find(userLogin, callbackSuccess, callbackFailed){
+
+        db.query("SELECT * FROM users WHERE login = ?", [userLogin], (err, rows) => {
+            if(err){
+                console.log(err);
+                callbackFailed(err);
+                return false;
+            }
+            callbackSuccess(rows);
+        });
+
         for(let i in this.users){
             if(userLogin == this.users[i].getLogin()){
                return this.users[i].getID(); 
@@ -56,11 +73,29 @@ class userFactory {
         return null;
     }
 
-    create(userData){
+    create(userData, callbackSuccess, callbackFailed){
         let user = User.Parse(userData);
         if(user !== false){
-            this.users.push(user);
-            return user;    
+            this.find(user.login, (result) => {
+                if(result.length > 0){
+                    callbackFailed("User already exists!");
+                    return;
+                }
+
+                db.query('INSERT INTO users set login = ?', [user.login], (err) => {
+                    if(err){
+                        callbackFailed(err);
+                    }
+
+                    callbackSuccess("User created");
+                });
+            });
+            // if(this.find(user.login) === undefined){
+            //     this.users.push(user);
+            //     return user;
+            // }
+
+            return false;   
         }
 
         return false;
