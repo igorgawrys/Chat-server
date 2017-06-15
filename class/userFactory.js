@@ -6,37 +6,10 @@ let User = require('./User');
 let tokenFactory = require('./TokenFactory');
 let passwordFactory = require('./PasswordFactory');
 
-let exampleUsers = [
-    {
-        login: "a",
-        password: "a",
-        friends: [1]
-    }, {
-        login: "rafalgogol",
-        password: "AlaMaKota"
-    }, {
-        login: "paupau",
-        password: "AlaNieMaKota",
-        friends: [3]
-    }
-];
-
 class userFactory {
 
-    constructor(){
-        this.users = [];
-
-        while(exampleUsers.length > 0){
-            let user = this.create(exampleUsers.pop(), (message) => {
-                // console.log(message);
-            }, (err) => {
-                // console.error(err);
-            });           
-        }
-    }
-
+    // Find user in db by user login
     find(userLogin, callbackSuccess, callbackFailed){
-
         db.query("SELECT * FROM users WHERE login = ? LIMIT 1", [userLogin], (err, rows) => {
             if(err){
                 console.log(err);
@@ -55,10 +28,10 @@ class userFactory {
             } else {
                 callbackFailed("User not found");
             }
-            
         });
     }
 
+    // Get user from db by id
     get(userID, callbackSuccess, callbackFailed){
         db.query("SELECT * FROM users WHERE userID = ? LIMIT 1", [userID], (err, rows) => {
             if(err){
@@ -81,15 +54,7 @@ class userFactory {
         });
     }
 
-    findByWS(ws){
-        for(let i in this.users){
-            if(ws == this.users[i].getWebSocket()){
-               return this.users[i]; 
-            }
-        }
-        return null;
-    }
-
+    // Create new user
     create(userData, callbackSuccess, callbackFailed){
         let user = User.Parse(userData);
         if(user !== false){
@@ -127,7 +92,7 @@ class userFactory {
         return false;
     }
 
-    // On success - send new token to user
+    // Login user - send new token
     authenticate(userData, callbackSuccess, callbackFailed){
         this.find(userData.login, (user) => {
             if(!user){
@@ -144,10 +109,6 @@ class userFactory {
 
             }, callbackFailed);
         });
-    }
-
-    validate(userID, userToken){
-        return tokenFactory.validateToken(userID, userToken);
     }
 }
 module.exports = new userFactory();

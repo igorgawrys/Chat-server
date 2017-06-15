@@ -3,24 +3,18 @@ const db = require('../database');
 let bcrypt = require('bcrypt');
 
 class PasswordFactory {
-    constructor() {
-        this.passwords = [];
-    }
 
-    get(userID){
-        for(let i in this.passwords){
-            if(this.passwords[i].user === userID){
-                return this.passwords[i];
-            }
-        }
-
-        return null;
-    }
-
+    // Save new password in db
     savePassword(userID, password){
-        db.query('INSERT INTO passwords SET userID = ?, hash = ?', [userID, password]);
+        db.query('INSERT INTO passwords SET userID = ?, hash = ?', [userID, password], (err) => {
+            if(err){
+                console.error(err);
+            }
+        });
     }
 
+
+    // Validate user password
     validate(userID, password, callbackSuccess, callbackFailed){
         db.query('SELECT hash FROM passwords WHERE userID = ?', [userID], (err, rows) => {
             if(err){
@@ -42,6 +36,7 @@ class PasswordFactory {
         });
     }
 
+    // Encrypt user password
     encrypt(password){
         let salt = bcrypt.genSaltSync(10);
         let hash = bcrypt.hashSync(password, salt);

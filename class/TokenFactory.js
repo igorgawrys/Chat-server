@@ -4,21 +4,7 @@ const db = require('../database');
 const crypto = require('crypto');
 
 class TokenFactory {
-
-    // Create empty tokens array
-    constructor(){
-        this.tokens = [];
     
-        db.query("SELECT * FROM tokens", (err, rows) => {
-            if(err){
-                console.error(err);
-                return;
-            }
-
-            // console.log(rows);
-        });
-    }
-
     // Generate and save new token
     generateToken(userID, userIP, callbackSuccess, callbackFailed){
         db.query('SELECT token FROM tokens WHERE userID = ? AND ip = ?', [userID, userIP], (err, rows) => {
@@ -42,8 +28,6 @@ class TokenFactory {
                 callbackSuccess(token);
             });
         });
-        
-        
     }
 }
 
