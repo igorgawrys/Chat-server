@@ -1,10 +1,12 @@
 let passwordFactory = require('./PasswordFactory');
-let userNextID = 1;
 
 class User {
     constructor(userData){
         this.login = userData.login;
-        this.id = userNextID++;
+
+        if(userData.userID !== undefined){
+            this.id = userData.userID;
+        }
 
         this.ws = undefined; // Hold WebSocket connection
 
@@ -39,10 +41,8 @@ class User {
         if(userData.login === undefined){
             return false;
         }
-        let user = new User(userData);
-        passwordFactory.generatePassword(user.id, userData.password);
 
-        return user;
+        return new User(userData);
     }
 
 }

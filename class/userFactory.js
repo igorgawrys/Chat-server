@@ -28,40 +28,57 @@ class userFactory {
 
         while(exampleUsers.length > 0){
             let user = this.create(exampleUsers.pop(), (message) => {
-                console.log(message);
+                // console.log(message);
             }, (err) => {
-                console.error(err);
+                // console.error(err);
             });           
         }
     }
 
     find(userLogin, callbackSuccess, callbackFailed){
 
-        db.query("SELECT * FROM users WHERE login = ?", [userLogin], (err, rows) => {
+        db.query("SELECT * FROM users WHERE login = ? LIMIT 1", [userLogin], (err, rows) => {
             if(err){
                 console.log(err);
                 callbackFailed(err);
                 return false;
             }
-            callbackSuccess(rows);
-        });
+            
+            let user = null;
 
-        for(let i in this.users){
-            if(userLogin == this.users[i].getLogin()){
-               return this.users[i].getID(); 
+            if(rows.length > 0){
+                user = User.Parse(rows[0]);
             }
-        }
-
-        return null;
+            
+            if(user !== null){
+                callbackSuccess(user);
+            } else {
+                callbackFailed("User not found");
+            }
+            
+        });
     }
 
-    get(userID){
-        for(let i in this.users){
-            if(userID == this.users[i].getID()){
-               return this.users[i]; 
+    get(userID, callbackSuccess, callbackFailed){
+        db.query("SELECT * FROM users WHERE userID = ? LIMIT 1", [userID], (err, rows) => {
+            if(err){
+                console.log(err);
+                callbackFailed(err);
+                return false;
             }
-        }
-        return null;
+            
+            let user = null;
+
+            if(rows.length > 0){
+                user = User.Parse(rows[0]);
+            }
+            
+            if(user !== null){
+                callbackSuccess(user);
+            } else {
+                callbackFailed("User not found");
+            }
+        });
     }
 
     findByWS(ws){
@@ -77,24 +94,33 @@ class userFactory {
         let user = User.Parse(userData);
         if(user !== false){
             this.find(user.login, (result) => {
-                if(result.length > 0){
+                if(result !== null){
                     callbackFailed("User already exists!");
                     return;
                 }
 
-                db.query('INSERT INTO users set login = ?', [user.login], (err) => {
+                db.query('INSERT INTO users SET login = ?', [user.login], (err) => {
                     if(err){
                         callbackFailed(err);
                     }
 
-                    callbackSuccess("User created");
+                    this.find(user.login, (user) => {
+
+                        if(!user){
+                            callbackFailed("User not found after create");
+                            return;
+                        }
+
+                        let hash = passwordFactory.encrypt(userData.password);
+                        passwordFactory.savePassword(user.getID(), hash, () => {
+                            callbackSuccess("User created");
+                        }, callbackFailed);
+                    }, callbackFailed);
+
+                    
                 });
             });
-            // if(this.find(user.login) === undefined){
-            //     this.users.push(user);
-            //     return user;
-            // }
-
+            
             return false;   
         }
 
@@ -102,16 +128,22 @@ class userFactory {
     }
 
     // On success - send new token to user
-    authenticate(userLogin, userPass){
-        let userID = this.find(userLogin);
-        if(passwordFactory.validate(userID, userPass)){
-            return {
-                userID: userID,
-                token: tokenFactory.generateToken(userID)
+    authenticate(userData, callbackSuccess, callbackFailed){
+        this.find(userData.login, (user) => {
+            if(!user){
+                callbackFailed("User not found");
+                return false;
             }
-        }
 
-        return false;
+            passwordFactory.validate(user.getID(), userData.password, () => {
+                tokenFactory.generateToken(user.getID(), userData.ip, (token) => {
+                    callbackSuccess({
+                        token: token
+                    });
+                }, callbackFailed);
+
+            }, callbackFailed);
+        });
     }
 
     validate(userID, userToken){

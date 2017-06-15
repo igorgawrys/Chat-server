@@ -22,20 +22,20 @@ module.exports = (app) => {
     // User routes
     app.get('/users/:userID', (req, res) => {
         let userID = req.params.userID;
-        let user = undefined;
+        
         if(parseInt(userID)){
-            user = userFactory.get(userID);
+            userFactory.get(userID, (user) => {
+                res.send(user);
+            }, (err) => {
+                res.send(err);
+            });
         } else {
-            user = userFactory.get(userFactory.find(userID));
+            userFactory.find(userID, (user) => {
+                res.send(user);
+            }, (err) => {
+                res.send(err);
+            });
         }
-
-        if(user === null){
-            user = {
-                error: "User not exists"
-            }
-        };
-
-        res.send(user);
     });
 
     app.post('/users/validate', (req, res) => {
@@ -62,21 +62,23 @@ module.exports = (app) => {
             return;
         }
 
-        let login = req.body.login;
-        let password = req.body.password;
-        
-        let userData = userFactory.authenticate(login, password);
 
-        if(userData === false){
+        let ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+        if(ip === "::1"){
+            ip = "localhost";
+        }
+
+        let userData = userFactory.authenticate({
+            ip: ip,
+            login: req.body.login,
+            password: req.body.password
+        }, (data) => {
+            res.send(data);
+        }, (err) => {
+            console.log(err);
             res.send({
                 error: "User not authenticated"
             });
-
-            return;
-        } else {
-            res.send(
-                userData
-            );
-        }
+        });
     });
 }

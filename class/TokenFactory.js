@@ -1,4 +1,6 @@
 "use strict"
+const db = require('../database');
+
 const crypto = require('crypto');
 
 class TokenFactory {
@@ -6,67 +8,43 @@ class TokenFactory {
     // Create empty tokens array
     constructor(){
         this.tokens = [];
-    }
-
-    // Get user tokens by userID
-    getUser(userID){
-        for(let i in this.tokens){
-            if(this.tokens[i].user === userID){
-                return this.tokens[i];
+    
+        db.query("SELECT * FROM tokens", (err, rows) => {
+            if(err){
+                console.error(err);
+                return;
             }
-        }
 
-        return null;
+            // console.log(rows);
+        });
     }
 
     // Generate and save new token
-    generateToken(userID){
-        let user = this.getUser(userID);
-        if(user === null){
-            this.tokens.push({
-                user: userID,
-                tokens: []
-            });
-
-            user = this.getUser(userID);
-        }
-
-        let token = crypto.randomBytes(256).toString('hex');
-        user.tokens.push(token);
-        return token;
-    }
-
-    // If user iss logged out, remove his token
-    dimissToken(userID, token){
-        let user = this.getUser(userID);
-        if(user === null){
-            return false;
-        }
-
-        let index = user.tokens.indexOf(token);
-        if(token > -1){
-            user.tokens.splice(index, 1);
-        }
-
-        return true;
-    }
-
-    // For every request, validate user token
-    validateToken(userID, token){
-        let user = this.getUser(userID);
-        if(user === null){
-            return false;
-        }
-
-        for(let i in user.tokens){
-            if(user.tokens[i] === token){
-                return true;
+    generateToken(userID, userIP, callbackSuccess, callbackFailed){
+        db.query('SELECT token FROM tokens WHERE userID = ? AND ip = ?', [userID, userIP], (err, rows) => {
+            if(err){
+                callbackFailed(err);
+                return;
             }
-        }
 
-        return false;
+            if(rows.length > 0) {
+                callbackSuccess(rows[0].token);
+                return;
+            }
+            
+            let token = crypto.randomBytes(256).toString('hex');
+            db.query("INSERT INTO tokens SET userID = ?, token = ?, ip = ?", [userID, token, userIP], (err) => {
+                if(err){
+                    console.log(err);
+                    callbackFailed("Token is not generated");
+                    return;
+                }
+                callbackSuccess(token);
+            });
+        });
+        
+        
     }
-
 }
 
 module.exports = new TokenFactory();
