@@ -6,26 +6,24 @@ const crypto = require('crypto');
 class TokenFactory {
     
     // Generate and save new token
-    generateToken(userID, userIP, callbackSuccess, callbackFailed){
-        db.query('SELECT token FROM tokens WHERE userID = ? AND ip = ?', [userID, userIP], (err, rows) => {
-            if(err){
-                callbackFailed(err);
-                return;
-            }
-
-            if(rows.length > 0) {
-                callbackSuccess(rows[0].token);
-                return;
-            }
-            
-            let token = crypto.randomBytes(256).toString('hex');
-            db.query("INSERT INTO tokens SET userID = ?, token = ?, ip = ?", [userID, token, userIP], (err) => {
+    generateToken(userID, userIP){
+        return new Promise((resolve, reject) => {
+            db.query('SELECT token FROM tokens WHERE userID = ? AND ip = ?', [userID, userIP], (err, rows) => {                
                 if(err){
-                    console.log(err);
-                    callbackFailed("Token is not generated");
-                    return;
+                    return reject(err);
                 }
-                callbackSuccess(token);
+
+                if(rows.length > 0) {
+                    return resolve(rows[0].token);
+                }
+                
+                let token = crypto.randomBytes(256).toString('hex');
+                db.query("INSERT INTO tokens SET userID = ?, token = ?, ip = ?", [userID, token, userIP], (err) => {
+                    if(err){
+                        return reject("Token was not generated");
+                    }
+                    return resolve(token);
+                });
             });
         });
     }

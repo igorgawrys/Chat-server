@@ -107,22 +107,21 @@ class userFactory {
             }
 
             let user = undefined;
-            this.find(userLogin)
-                .then((user) => {
-                    user = user;
-                    
-                    passwordFactory.validate(user.getID(), userPass)
-                        .then((token) => {
-                            return resolve({
-                                token: token
-                            });
-                        })
-                        .catch((err) => {
-                            return reject(err);                  
-                        });
-            
-                }).catch((err) => {
-                    return reject(err);
+            this.find(userLogin) // Find user
+                .then((_user) => {
+                    user = _user;
+                    return passwordFactory.validate(user.getID(), userPass) // Check password
+                })
+                .then(() => {
+                    return tokenFactory.generateToken(user.getID(), userIP)
+                }) // Get token
+                .then((token) => {
+                    return resolve({
+                        token: token
+                    });
+                })
+                .catch((err) => {
+                    return reject(err); // If any step was failed, return error
                 });
         });
     }

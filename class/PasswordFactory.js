@@ -27,7 +27,7 @@ class PasswordFactory {
                 }
 
                 if(bcrypt.compareSync(password, rows[0].hash)){
-                    return resolve(rows[0].hash);
+                    return resolve();
                 } else {
                     return reject("Password is not match");
                 }
