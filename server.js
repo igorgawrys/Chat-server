@@ -33,10 +33,13 @@ const server = require('http').createServer(app);
 //const WebSocketServer = require('ws');
 //const ws = new WebSocketServer.Server({ server });
 
-// Define routes
-const routes = require('./routes')(app);
+// Define user routes
+let userRoutes = require('./routes/userRoutes');
 //const wsRoutes = require('./ws-routes')(ws);
 
+app.use('/users', userRoutes);
+
 server.listen(3000, () => {
-    console.log("Server is running on port: " + server.address().port);
+    let message = "Server is running on port: " + server.address().port;
+    console.log(message);
 });

@@ -1,4 +1,4 @@
-"use strict"
+'use strict'
 
 const db = require('../database');
 
@@ -10,24 +10,28 @@ class userFactory {
 
     // Find user in db by user login
     find(userLogin, callbackSuccess, callbackFailed){
-        db.query("SELECT * FROM users WHERE login = ? LIMIT 1", [userLogin], (err, rows) => {
-            if(err){
-                console.log(err);
-                callbackFailed(err);
-                return false;
-            }
-            
-            let user = null;
+        return new Promise((resolve, reject) => {
 
-            if(rows.length > 0){
-                user = User.Parse(rows[0]);
-            }
-            
-            if(user !== null){
-                callbackSuccess(user);
-            } else {
-                callbackFailed("User not found");
-            }
+            db.query("SELECT * FROM users WHERE login = ? LIMIT 1", [userLogin], (err, rows) => {
+                if(err){
+                    return reject(err);
+                }
+                
+                let user = null;
+
+                if(rows.length > 0){
+                    user = User.Parse(rows[0]);
+                } else {
+                    return reject("User not found");
+                }
+                
+                if(user !== null){
+                    return resolve(user);
+                } else {
+                    return reject("User not found");
+                }
+            });
+
         });
     }
 
@@ -92,22 +96,34 @@ class userFactory {
         return false;
     }
 
-    // Login user - send new token
-    authenticate(userData, callbackSuccess, callbackFailed){
-        this.find(userData.login, (user) => {
-            if(!user){
-                callbackFailed("User not found");
-                return false;
+    authenticate(userLogin, userPass, userIP){
+        return new Promise((resolve, reject) => {
+            if(userLogin === undefined){
+                return reject("User login is not provided");
             }
 
-            passwordFactory.validate(user.getID(), userData.password, () => {
-                tokenFactory.generateToken(user.getID(), userData.ip, (token) => {
-                    callbackSuccess({
-                        token: token
-                    });
-                }, callbackFailed);
+            if(userPass === undefined){
+                return reject("User password is not provided");
+            }
 
-            }, callbackFailed);
+            let user = undefined;
+            this.find(userLogin)
+                .then((user) => {
+                    user = user;
+                    
+                    passwordFactory.validate(user.getID(), userPass)
+                        .then((token) => {
+                            return resolve({
+                                token: token
+                            });
+                        })
+                        .catch((err) => {
+                            return reject(err);                  
+                        });
+            
+                }).catch((err) => {
+                    return reject(err);
+                });
         });
     }
 }

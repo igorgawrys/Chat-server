@@ -15,24 +15,24 @@ class PasswordFactory {
 
 
     // Validate user password
-    validate(userID, password, callbackSuccess, callbackFailed){
-        db.query('SELECT hash FROM passwords WHERE userID = ?', [userID], (err, rows) => {
-            if(err){
-                console.error(err);
-                callbackFailed("Cannot get user hash");
-                return;
-            }
+    validate(userID, password){
+        return new Promise((resolve, reject) => {
+            db.query('SELECT hash FROM passwords WHERE userID = ?', [userID], (err, rows) => {
+                if(err){
+                    return reject("Cannot get user hash");
+                }
 
-            if(rows.length === 0){
-                callbackFailed("User don't store his password");
-                return;
-            }
+                if(rows.length === 0){
+                    return reject("User don't store his password");
+                }
 
-            if(bcrypt.compareSync(password, rows[0].hash)){
-                callbackSuccess(rows[0].hash);
-            } else {
-                callbackFailed("Password is not match");
-            }
+                if(bcrypt.compareSync(password, rows[0].hash)){
+                    return resolve(rows[0].hash);
+                } else {
+                    return reject("Password is not match");
+                }
+            });
+
         });
     }
 
