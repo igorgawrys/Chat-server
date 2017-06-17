@@ -10,7 +10,7 @@ class userFactory {
     find(userLogin){
         return new Promise((resolve, reject) => {
 
-            db.query("SELECT userID FROM users WHERE login = ? LIMIT 1", [userLogin], (err, rows) => {
+            db.query("SELECT userID, login as userLogin FROM users WHERE login = ? LIMIT 1", [userLogin], (err, rows) => {
                 if(err){
                     return reject("Failed to execute find");
                 }
@@ -131,14 +131,14 @@ class userFactory {
                 return reject("User password is not provided");
             }
 
-            let user = undefined;
+            let userData = undefined;
             this.find(userLogin) // Find user
                 .then((_user) => {
-                    user = _user;
-                    return passwordFactory.validate(user.getID(), userPass) // Check password
+                    userData = _user;
+                    return passwordFactory.validate(userData.userID, userPass) // Check password
                 })
                 .then(() => {
-                    return tokenFactory.generateToken(user.getID(), userIP)
+                    return tokenFactory.generateToken(userData.userID, userIP)
                 }) // Get token
                 .then((token) => {
                     return resolve({
