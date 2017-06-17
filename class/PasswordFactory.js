@@ -6,11 +6,26 @@ class PasswordFactory {
 
     // Save new password in db
     savePassword(userID, password){
-        db.query('INSERT INTO passwords SET userID = ?, hash = ?', [userID, password], (err) => {
-            if(err){
-                console.error(err);
-            }
+        return new Promise((resolve, reject) => {
+            db.query('INSERT INTO passwords SET userID = ?, hash = ?', [userID, password], (err) => {
+                if(err){
+                    return reject(err);
+                }
+
+                return resolve();
+            });
         });
+    }
+
+    remove(userID) {
+        return new Promise((resolve, reject) => {
+            db.query('DELETE FROM passwords WHERE userID = ?', [userID], (err, rows) => {
+                if(err){
+                    return reject(err);
+                }
+                return resolve();
+            });
+        })
     }
 
 

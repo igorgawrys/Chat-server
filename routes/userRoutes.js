@@ -26,4 +26,35 @@ router.route('/authenticate').post((req, res) => {
 router.route('/logout').get((req, res) => {
 });
 
+router.route('/create').post((req, res) => {
+    let userData = {
+        login: req.body.login,
+        password: req.body.password
+    };
+
+    userFactory.create(userData)
+        .then((response) => {
+            res.send(response);
+        })
+        .catch((err) => {
+            console.error(err);
+            res.send({
+                error: err
+            });
+        });
+});
+
+router.route('/remove').post((req, res) => {
+    userFactory.remove(req.body.userLogin)
+        .then((response) => {
+            res.send(response);
+        })
+        .catch((err) => {
+            console.error(err);
+            res.send({
+                error: err
+            });
+        })
+});
+
 module.exports = router;

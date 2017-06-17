@@ -27,6 +27,17 @@ class TokenFactory {
             });
         });
     }
+
+    remove(userID) {
+        return new Promise((resolve, reject) => {
+            db.query('DELETE FROM tokens WHERE userID = ?', [userID], (err, rows) => {
+                if(err){
+                    return reject(err);
+                }
+                return resolve();
+            });
+        })
+    }
 }
 
 module.exports = new TokenFactory();

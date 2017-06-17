@@ -1,32 +1,24 @@
 'use strict'
 
 const db = require('../database');
-
-let User = require('./User');
 let tokenFactory = require('./TokenFactory');
 let passwordFactory = require('./PasswordFactory');
 
 class userFactory {
 
     // Find user in db by user login
-    find(userLogin, callbackSuccess, callbackFailed){
+    find(userLogin){
         return new Promise((resolve, reject) => {
 
-            db.query("SELECT * FROM users WHERE login = ? LIMIT 1", [userLogin], (err, rows) => {
+            db.query("SELECT userID FROM users WHERE login = ? LIMIT 1", [userLogin], (err, rows) => {
                 if(err){
-                    return reject(err);
+                    return reject("Failed to execute find");
                 }
                 
                 let user = null;
 
                 if(rows.length > 0){
-                    user = User.Parse(rows[0]);
-                } else {
-                    return reject("User not found");
-                }
-                
-                if(user !== null){
-                    return resolve(user);
+                    return resolve(rows[0]);
                 } else {
                     return reject("User not found");
                 }
@@ -35,65 +27,98 @@ class userFactory {
         });
     }
 
-    // Get user from db by id
-    get(userID, callbackSuccess, callbackFailed){
-        db.query("SELECT * FROM users WHERE userID = ? LIMIT 1", [userID], (err, rows) => {
-            if(err){
-                console.log(err);
-                callbackFailed(err);
-                return false;
-            }
-            
-            let user = null;
+    checkIfExists(userLogin){
+        return new Promise((resolve, reject) => {
+            db.query("SELECT * FROM users WHERE login = ? LIMIT 1", [userLogin], (err, rows) => {
+                if(err){
+                    return reject("Failed to execute checkIfExists");
+                }
+                
+                if(rows.length > 0){
+                    return reject("User already exists");
+                }
 
-            if(rows.length > 0){
-                user = User.Parse(rows[0]);
-            }
-            
-            if(user !== null){
-                callbackSuccess(user);
-            } else {
-                callbackFailed("User not found");
-            }
+                return resolve();
+            });
+
+        });
+    }
+
+    delete(userID) {
+        return new Promise((resolve, reject) => {
+            db.query('DELETE FROM users WHERE userID = ?', [userID], (err, rows) => {
+                if(err){
+                    return reject("Failed to execute delete");
+                }
+                return resolve("User removed");
+            });
+        })
+    }
+
+    insert(userLogin){
+        return new Promise((resolve, reject) => {
+            db.query('INSERT INTO users SET login = ?', [userLogin], (err) => {
+                if(err){
+                    return reject("Failed to execute insert");
+                }
+
+                return resolve();                      
+            });
         });
     }
 
     // Create new user
-    create(userData, callbackSuccess, callbackFailed){
-        let user = User.Parse(userData);
-        if(user !== false){
-            this.find(user.login, (result) => {
-                if(result !== null){
-                    callbackFailed("User already exists!");
-                    return;
-                }
+    create(userData){
+        return new Promise((resolve, reject) => {
+            if(userData.login === undefined){
+                return reject("User login is empty");
+            }
 
-                db.query('INSERT INTO users SET login = ?', [user.login], (err) => {
-                    if(err){
-                        callbackFailed(err);
-                    }
+            if(userData.password === undefined){
+                return reject("User password is empty");
+            }
 
-                    this.find(user.login, (user) => {
-
-                        if(!user){
-                            callbackFailed("User not found after create");
-                            return;
-                        }
-
-                        let hash = passwordFactory.encrypt(userData.password);
-                        passwordFactory.savePassword(user.getID(), hash, () => {
-                            callbackSuccess("User created");
-                        }, callbackFailed);
-                    }, callbackFailed);
-
-                    
+            this.checkIfExists(userData.login)
+                .then(() => {
+                    return this.insert(userData.login);
+                })
+                .then(() => {
+                    return this.find(userData.login);
+                })
+                .then((user) => {
+                    let hash = passwordFactory.encrypt(userData.password);
+                    return passwordFactory.savePassword(user.userID, hash);
+                })
+                .then(() => {
+                    return resolve("User successfully created!");
+                })
+                .catch((err) => {
+                    return reject(err);
                 });
-            });
-            
-            return false;   
-        }
+        });
+    }
 
-        return false;
+    remove(userLogin) {   
+        let userID = undefined;
+        return new Promise((resolve, reject) => {
+            this.find(userLogin)
+                .then((user) => {
+                    userID = user.userID;
+                    return tokenFactory.remove(userID);
+                })
+                .then(() => {
+                    return passwordFactory.remove(userID);
+                })
+                .then(() => {
+                    return this.delete(userID);
+                })
+                .then(() => {
+                    return resolve("User successfully removed");
+                })
+                .catch((err) => {
+                    return reject(err);
+                })
+        });
     }
 
     authenticate(userLogin, userPass, userIP){
