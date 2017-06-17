@@ -17,7 +17,7 @@ router.route('/authenticate').post((req, res) => {
         })
         .catch((err) => {
             console.error(err);
-            res.send(401, {
+            res.status(401).send({
                 error: err
             });            
         });

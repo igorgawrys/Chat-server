@@ -32,6 +32,22 @@ class TokenFactory {
         });
     }
 
+    checkIfExists(token){
+        return new Promise((resolve, reject) => {
+            db.query("SELECT tokenID FROM tokens WHERE token = ?", [token], (err, rows) => {
+                if(err){
+                    return reject(err);
+                }
+
+                if(rows.length > 0){
+                    return resolve();
+                }
+
+                return reject();
+            });
+        });
+    }
+
     // Generate and save new token
     generateToken(userID, userIP){
         process.env.requestsCount++;
