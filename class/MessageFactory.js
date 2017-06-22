@@ -1,5 +1,5 @@
 'use strict'
-
+const db = require('../database');
 let mongo = require('mongodb').MongoClient;
 
 class MessageFactory {
@@ -11,17 +11,25 @@ class MessageFactory {
                 process.exit();   
             }
 
-            this.db = _db;
+            this.mongo = _db;
         });
     }
 
-    getConversationList(){
+    getConversationList(token){
+        return new Promise((resolve, reject) => {
+            db.query('SELECT conversations.conversationID FROM tokens JOIN users ON tokens.userID = users.userID JOIN userconversations as conversations ON conversations.userID = users.userID WHERE tokens.token = ?', [token], (err, rows) => {
+                if(err){
+                    return reject("Cannot get conversations list");
+                }
+                return resolve(rows);
+            });
+        });
         
     }
 
     getConversation(conversationID){
         return new Promise((resolve, reject) => {
-            let collection = this.db.collection("messages");
+            let collection = this.mongo.collection("messages");
             collection.find({ id: parseInt(conversationID) }, {messages: {$slice: [-6, 3]}}).toArray((err, doc) => {
                 if(err){
                     return reject(err);
@@ -32,7 +40,6 @@ class MessageFactory {
                 }
 
                 let messages = doc[0].messages;
-                console.log(messages);
                 return resolve(messages);
             });
         });
