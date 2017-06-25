@@ -24,24 +24,53 @@ class MessageFactory {
                 return resolve(rows);
             });
         });
-        
+    }
+
+    checkIfConversationExists(conversationID){
+        return new Promise((resolve, reject) => {
+            this.mongo.listCollections().toArray((err, doc) => {
+                for(let i in doc){
+                    if(doc[i].name === "conversation_" + conversationID){
+                        return resolve();
+                    }
+                }
+
+                return reject("Conversation not found :(");
+            });
+        });
     }
 
     getConversation(conversationID){
-        return new Promise((resolve, reject) => {
-            let collection = this.mongo.collection("messages");
-            collection.find({ id: parseInt(conversationID) }, {messages: {$slice: [-6, 3]}}).toArray((err, doc) => {
+        conversationID = "conversation_" + conversationID;
+        let collection = this.mongo.collection(conversationID);
+        return new Promise((resolve, reject) => {            
+            collection.find({}).toArray((err, doc) => {
                 if(err){
                     return reject(err);
                 }
 
-                if(doc.length === 0){
-                    return reject("Conversation not found");
-                }
-
-                let messages = doc[0].messages;
-                return resolve(messages);
+                return resolve(doc);
             });
+        });
+    }
+
+    sendMessage(conversationID, userID, message){
+        conversationID = "conversation_" + conversationID;
+        let collection = this.mongo.collection(conversationID);
+        return new Promise((resolve, reject) => {
+            
+            message = {
+                senderID: userID,
+                message: message,
+                read: false,
+                date: new Date()
+            };
+
+            let result = collection.insert(message);
+            if(result.insertedCount > 0){
+                return resolve(message);
+            }
+            return reject(result);
         });
     }
 

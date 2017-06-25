@@ -27,6 +27,22 @@ class userFactory {
         });
     }
 
+    getID(userToken){
+        return new Promise((resolve, reject) => {
+            db.query("SELECT users.userID FROM users JOIN tokens on tokens.userID = users.userID WHERE token = ?", [userToken], (err, rows) => {
+                if(err){
+                    return reject(err);
+                }
+
+                if(rows.length > 0){
+                    return resolve(rows[0].userID);
+                } else {
+                    return reject("Token expired");
+                }
+            });
+        });
+    }
+
     checkIfExists(userLogin){
         return new Promise((resolve, reject) => {
             db.query("SELECT * FROM users WHERE login = ? LIMIT 1", [userLogin], (err, rows) => {
