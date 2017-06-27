@@ -23,6 +23,21 @@ router.route('/authenticate').post((req, res) => {
         });
 });
 
+router.route('/validate').get((req, res) => {
+    let token = req.get('Authorization').split(' ')[1];
+    userFactory.getID(token)
+        .then((userID) => {
+            res.send({
+                authenticated: true
+            });
+        })
+        .catch((err) => {
+            console.error(err);
+            res.status(401).send({
+                error: err
+            });
+        })
+});
 
 router.route('/logout').get((req, res) => {
 });
